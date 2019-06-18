@@ -11,3 +11,8 @@ value1 if 条件 else value2
 ```python 
 a,b =b,a
 ```
+#### 3、多变量赋值
+一条语句实现多变量的赋值
+```python
+a,b,c=10,23,24
+```
