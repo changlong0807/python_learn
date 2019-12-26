@@ -1,0 +1,77 @@
+#!/usr/bin/env python 
+# -*- coding:utf-8 -*-
+import os
+from sklearn.cluster import KMeans
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+
+num = 100
+np.random.seed(0)
+# 聚类群体1
+mu1 = np.array([1, 1])
+sigma1 = np.array([[0.5, 0], [0, 0.5]])
+R1 = np.linalg.cholesky(sigma1)
+s1 = np.dot(np.random.randn(num, 2), R1) + mu1
+plt.plot(s1[:, 0], s1[:, 1], 'y.')
+
+# 聚类群体2
+mu2 = np.array([6, 0])
+sigma2 = np.array([[0.1, 0.1], [0, 0.5]])
+R2 = np.linalg.cholesky(sigma2)
+s2 = np.dot(np.random.randn(num, 2), R2) + mu2
+plt.plot(s2[:, 0], s2[:, 1], '*r')
+
+# 聚类群体3
+mu3 = np.array([-2, -2])
+sigma3 = np.array([[0.6, 0], [0, 1]])
+R3 = np.linalg.cholesky(sigma3)
+s3 = np.dot(np.random.randn(num, 2), R3) + mu3
+plt.plot(s3[:, 0], s3[:, 1], 'b+')
+plt.show()
+
+# 将聚类群体合并
+s = np.vstack((s1, s2, s3))
+
+# 应用肘部法则确定 kmeans方法中的k
+from scipy.spatial.distance import cdist
+
+K = range(1, 10)
+sse_result = []
+kmeans_centers = []
+for k in K:
+    kmeans = KMeans(n_clusters=k)
+    kmeans.fit(s)
+    kmeans_centers.append(kmeans.cluster_centers_)
+    sse_result.append(sum(np.min(cdist(s, kmeans.cluster_centers_, 'euclidean'), axis=1)) / s.shape[0])
+
+plt.plot(K, sse_result, 'gx-')
+plt.xlabel('k')
+plt.ylabel(u'平均畸变程度')
+plt.title(u'肘部法则确定最佳的K值')
+plt.show()
+
+# 应用轮廓系数确定kmeans中的k
+from sklearn.metrics import silhouette_score
+
+K = range(2, 10)
+score = []
+for k in K:
+    kmeans = KMeans(n_clusters=k)
+    kmeans.fit(s)
+    score.append(silhouette_score(s, kmeans.labels_, metric='euclidean'))
+plt.plot(K, score, 'r*-')
+plt.xlabel('k')
+plt.ylabel(u'轮廓系数')
+plt.title(u'轮廓系数确定最佳的K值')
+plt.show()
+
+# 绘制样本点与聚类中心的图
+plt.plot(s1[:, 0], s1[:, 1], 'y.')
+plt.plot(s2[:, 0], s2[:, 1], '*r')
+plt.plot(s3[:, 0], s3[:, 1], 'b+')
+plt.plot(kmeans_centers[2][:, 0], kmeans_centers[2][:, 1], 'go')
+plt.show()
